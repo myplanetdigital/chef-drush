@@ -1,6 +1,6 @@
 #
 # Cookbook Name::  drush
-# Recipe:: make
+# Attributes:: default
 #
 # Author:: Mark Sonnabaum <mark.sonnabaum@acquia.com>
 # Contributor:: Patrick Connolly <patrick@myplanetdigital.com>
@@ -18,21 +18,10 @@
 # limitations under the License.
 #
 
-case node[:platform]
-when "debian", "ubuntu", "arch"
+default['drush']['install_path']    = "/usr/share/drush"
+default['drush']['PATH_dir']        = "/usr/bin"
+default['drush']['bash_completion'] = "true"
 
-  require_recipe "drush"
-
-  git "/usr/share/drush_make" do
-    repository "git://git.drupalcode.org/project/drush_make.git"
-    reference "6.x-2.2"
-    action :sync
-  end
-
-  link "/usr/share/drush/commands/drush_make" do
-    to "/usr/share/drush_make"
-    not_if "test -f /usr/share/drush/commands/drush_make/drush_make.drush.inc"
-    only_if "test -f /usr/share/drush_make/drush_make.drush.inc"
-  end
-
-end
+# A branch, tag, or commit hash (Examples: master, 7.x-4.x, 7.x-4.5, or 68d69f156328e197a63)
+# Full listing of options available at http://drupalcode.org/project/drush.git
+default['drush']['reference'] = "7.x-4.5"
