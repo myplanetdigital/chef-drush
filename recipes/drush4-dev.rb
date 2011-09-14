@@ -17,22 +17,24 @@
 
 case node[:platform]
 when "debian", "ubuntu"
-  require_recipe "git"
   git "/usr/share/drush" do
     repository "git://git.drupalcode.org/project/drush.git"
-    reference "7.x-4.5"
+    reference "7.x-4.x"
     action :sync
   end
-
-  link "/usr/bin/drush" do
-    to "/usr/share/drush/drush"
-    not_if "test -L /usr/bin/drush"
-    only_if "test -f /usr/share/drush/drush"
-  end
   
-  require_recipe "php"
-  php_pear "Console_Table" do
-    action :install
+  bash "make-drush-symlink" do
+    code <<-EOH
+    (ln -s /usr/share/drush/drush /usr/bin/drush)
+    EOH
+    not_if { File.exists?("/usr/bin/drush") }
+    only_if { File.exists?("/usr/share/drush/drush") }
   end
 
+  bash "install-console-table" do
+    code <<-EOH
+    (pear install Console_Table)
+    EOH
+    not_if "pear list| grep Console_Table"
+  end
 end
