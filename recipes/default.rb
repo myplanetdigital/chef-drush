@@ -29,25 +29,39 @@ when "debian", "ubuntu", "arch"
     action :install
   end
 
-  git install_path do
-    repository "git://git.drupalcode.org/project/drush.git"
-    reference node['drush']['reference']
-    action :sync
+  node['drush']['references'].each do |ref|
+    git "#{install_path}-#{ref}" do
+      repository "git://git.drupalcode.org/project/drush.git"
+      reference ref
+      action :sync
+    end
+  
+    link "/usr/bin/drush-#{ref}" do
+      to "#{install_path}-#{ref}/drush"
+    end
+
+    # master branch version needs to run once as root to avoid future errors.
+    bash "Debug run of drush-#{ref}" do
+      user "root"
+      code "drush-#{ref} -q"
+    end
   end
 
   link "/usr/bin/drush" do
-    to "#{install_path}/drush"
+    to "#{install_path}-#{node['drush']['references'].to_a[0]}/drush"
   end
 
-  if node.drush.attribute?("bash_completion")
+  if node['drush']['bash_completion'] == "true"
     directory "/etc/bash_completion.d" do
-      recursive "true"
+      recursive true
     end
 
     link "/etc/bash_completion.d/drush.complete.sh" do
-      to "#{install_dir}/drush.complete.sh"
+      to "#{install_path}-#{node['drush']['references'].to_a[0]}/drush.complete.sh"
+      only_if "test -f #{install_path}-#{node['drush']['references'].to_a[0]}/drush.complete.sh"
     end
   else
+    # Remove bash_complete if attribute "false"
     link "/etc/bash_completion.d/drush.complete.sh" do
       action :delete
       only_if "test -L /etc/bash_completion.d/drush.complete.sh"
