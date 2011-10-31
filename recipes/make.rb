@@ -35,5 +35,4 @@ when "debian", "ubuntu", "arch"
       only_if "test -f /usr/share/drush_make/drush_make.drush.inc"
     end
   end
-
 end
